@@ -4,11 +4,14 @@ const axios = require("axios");
 if (!global.temp.welcomeEvent)
 	global.temp.welcomeEvent = {};
 
+if (!global.temp.welcomeCooldown)
+	global.temp.welcomeCooldown = new Map();
+
 module.exports = {
 	config: {
 		name: "welcome",
-		version: "2.3",
-		author: "xalman",
+		version: "2.4",
+		author: "xalman + fix by Siam",
 		category: "events"
 	},
 
@@ -28,8 +31,18 @@ module.exports = {
 	onStart: async ({ threadsData, message, event, api, getLang }) => {
 		if (event.logMessageType == "log:subscribe")
 			return async function () {
-				const hours = getTime("HH");
+
 				const { threadID } = event;
+
+				// 🔥 COOL DOWN FIX
+				if (global.temp.welcomeCooldown.has(threadID)) return;
+				global.temp.welcomeCooldown.set(threadID, true);
+
+				setTimeout(() => {
+					global.temp.welcomeCooldown.delete(threadID);
+				}, 2000);
+
+				const hours = getTime("HH");
 				const { nickNameBot } = global.GoatBot.config;
 				const prefix = global.utils.getPrefix(threadID);
 				const dataAddedParticipants = event.logMessageData.addedParticipants;
@@ -87,17 +100,15 @@ module.exports = {
 					try {
 						const gifRes = await axios.get("https://i.imgur.com/AsVqFSb.gif", {
 							responseType: "stream",
-							timeout: 4000,
-							headers: {
-								'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-							}
+							timeout: 4000
 						});
 						form.attachment = gifRes.data;
 					} catch (e) {}
 
 					message.send(form);
 					delete global.temp.welcomeEvent[threadID];
-				}, 400); 
+
+				}, 1500); // 🔥 DELAY FIX
 			};
 	}
 };
