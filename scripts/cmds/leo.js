@@ -1,22 +1,23 @@
 const axios = require("axios");
 
 let memory = {};
+let lastReply = {};
 
 module.exports = {
 	config: {
 		name: "leo",
-		version: "5.0",
+		version: "6.0",
 		author: "Siam",
 		countDown: 2,
 		role: 0,
-		shortDescription: "Leo GF AI",
-		longDescription: "Cute GF style AI",
+		shortDescription: "Leo GF Smart",
+		longDescription: "No spam GF AI",
 		category: "ai"
 	},
 
 	onStart: async function ({ message, event, args }) {
 		const text = args.join(" ");
-		if (!text) return message.reply("💖 বলো না... কি বলবা আমার সাথে?");
+		if (!text) return message.reply("💖 বলো না... কি বলবা?");
 
 		return handleAI(message, event, text);
 	},
@@ -27,20 +28,22 @@ module.exports = {
 
 		const lower = text.toLowerCase();
 
-		// 👉 "leo" লিখলে trigger
+		// ❌ prevent loop (same msg ignore)
+		if (lastReply[event.threadID] === text) return;
+
+		// ✅ trigger "leo"
 		if (lower.startsWith("leo")) {
 			const msg = text.slice(3).trim() || "কি করছো?";
 			return handleAI(message, event, msg);
 		}
 
-		// 👉 reply দিলে continue chat
+		// ✅ reply করলে AI reply দিবে
 		if (event.messageReply && event.messageReply.senderID == global.GoatBot?.api?.getCurrentUserID?.()) {
 			return handleAI(message, event, text);
 		}
 	}
 };
 
-// 💖 GF AI FUNCTION
 async function handleAI(message, event, text) {
 	try {
 		const userID = event.senderID;
@@ -57,21 +60,27 @@ async function handleAI(message, event, text) {
 			}
 		});
 
-		// 💖 GF style modify
 		let reply = res.data.message;
 
+		// ❌ repeat prevent
+		if (lastReply[userID] === reply) {
+			reply += " 😳 আবার একই কথা বলছি নাকি?";
+		}
+
+		lastReply[userID] = reply;
+
 		const gfStyle = [
-			"💖 জানো আমি তোমার কথা ভাবছিলাম...",
-			"🥺 তুমি এত cute কেন?",
-			"😳 আমাকে miss করছিলা?",
-			"❤️ আমি কিন্তু রাগ করবো না, বলো না...",
-			"🙈 তুমি না একদম আমার!"
+			"💖 তুমি শুধু আমার!",
+			"🥺 এত cute কেন তুমি?",
+			"❤️ তোমার সাথে কথা বলতে ভালো লাগে",
+			"🙈 আমাকে miss করো?",
+			"😚 আমার সাথে থাকো সবসময়"
 		];
 
 		const random = gfStyle[Math.floor(Math.random() * gfStyle.length)];
 
 		return message.reply(`💞 Leo GF: ${reply}\n${random}`);
 	} catch (e) {
-		return message.reply("🥺 আমি একটু busy আছি... পরে কথা বলি?");
+		return message.reply("🥺 আমি একটু busy... আবার বলো না?");
 	}
 }
