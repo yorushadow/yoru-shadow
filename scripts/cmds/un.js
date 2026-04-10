@@ -1,29 +1,31 @@
 module.exports = {
 	config: {
 		name: "un",
-		version: "1.1",
+		version: "1.2",
 		author: "Siam",
 		countDown: 5,
-		role: 1,
+		role: 0,
 		shortDescription: "unsend bot message",
 		longDescription: "reply to bot message to delete it",
 		category: "utility"
 	},
 
-	onStart: async function ({ message, event, api, threadsData }) {
+	onStart: async function ({ message, event, api }) {
 
-		const threadData = await threadsData.get(event.threadID);
-		const adminIDs = threadData.adminIDs || [];
+		// 🔥 only YOU (owner)
+		const owners = ["61556603392377"]; // তোমার UID
 
-		if (!adminIDs.some(item => item.id == event.senderID)) {
-			return message.reply("❌ Only admin can use this command");
+		if (!owners.includes(event.senderID)) {
+			return message.reply("❌ Only owner can use this");
 		}
 
+		// ❌ reply না করলে
 		if (!event.messageReply)
 			return message.reply("❌ Reply to bot message");
 
 		const msgReply = event.messageReply;
 
+		// ❌ শুধু bot message delete হবে
 		if (msgReply.senderID != api.getCurrentUserID())
 			return message.reply("❌ Only bot messages can be removed");
 
